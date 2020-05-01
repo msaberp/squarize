@@ -21,9 +21,10 @@ def squarize(src, iterations=1):
     for kernel in kernels:
         conv = convolve(conv, kernel, iterations)
     return conv
-    
+
+
 if __name__ == "__main__":
     iters = 20
     img = cv.imread("circle.png", 0)
     cv.imwrite("square.png", squarize(img, iters))
-    
+
