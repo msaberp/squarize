@@ -23,8 +23,30 @@ def squarize(src, iterations=1):
     return conv
 
 
+def inv_squarize(src, iterations=1):
+    return cv.bitwise_not(squarize(cv.bitwise_not(src), iterations))
+
+
+def squarize_and_close(src, kernel, iterations=1):
+    for it in range(iterations):
+        squared = squarize(src)
+        src = cv.morphologyEx(squared, cv.MORPH_CLOSE, kernel)
+    return src
+
+
+def inv_squarize_and_open(src, kernel, iterations=1):
+    for it in range(iterations):
+        inv_squared = inv_squarize(src)
+        src = cv.morphologyEx(inv_squared, cv.MORPH_OPEN, kernel)
+    return src
+
+
 if __name__ == "__main__":
-    iters = 20
-    img = cv.imread("circle.png", 0)
-    cv.imwrite("square.png", squarize(img, iters))
+    iters = 1
+    img = cv.imread("module.png", 0)
+    _kernel = np.ones((3, 3))
+    sq_and_close = squarize_and_close(img, _kernel, iters)
+    cv.imwrite("module_sq_close.png", sq_and_close)
+    inv_sq_and_open = inv_squarize_and_open(sq_and_close, _kernel, iters)
+    cv.imwrite("module_inv_sq_open.png", inv_sq_and_open)
 
