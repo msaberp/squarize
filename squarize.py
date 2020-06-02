@@ -5,9 +5,9 @@ import numpy as np
 def convolve(src, kernel, iterations=1):
     output = src.copy()
     for it in range(iterations):
-        conv = cv.filter2D(output, -1, kernel)
-        _, thr = cv.threshold(conv, 180, 255, cv.THRESH_BINARY)
-        output = cv.threshold(thr + src, 180, 255, cv.THRESH_BINARY)[1]
+        convolved = cv.filter2D(output, -1, kernel, borderType=cv.BORDER_CONSTANT)
+        convolved = cv.threshold(convolved, 180, 255, cv.THRESH_BINARY)[1]
+        output = cv.bitwise_or(output, convolved)
     return output
     
     
@@ -28,25 +28,27 @@ def inv_squarize(src, iterations=1):
 
 
 def squarize_and_close(src, kernel, iterations=1):
-    for it in range(iterations):
-        squared = squarize(src)
-        src = cv.morphologyEx(squared, cv.MORPH_CLOSE, kernel)
-    return src
+    squared = squarize(src, iterations)
+    closed = cv.morphologyEx(squared, cv.MORPH_CLOSE, kernel)
+    return closed
 
 
 def inv_squarize_and_open(src, kernel, iterations=1):
-    for it in range(iterations):
-        inv_squared = inv_squarize(src)
-        src = cv.morphologyEx(inv_squared, cv.MORPH_OPEN, kernel)
-    return src
+    inv_squared = inv_squarize(src, iterations)
+    opened = cv.morphologyEx(inv_squared, cv.MORPH_OPEN, kernel)
+    return opened
 
 
 if __name__ == "__main__":
     iters = 1
-    img = cv.imread("module.png", 0)
+    img = cv.imread("image_1.png", 0)
+    img = cv.threshold(img, 127, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)[1]
     _kernel = np.ones((3, 3))
-    sq_and_close = squarize_and_close(img, _kernel, iters)
-    cv.imwrite("module_sq_close.png", sq_and_close)
-    inv_sq_and_open = inv_squarize_and_open(sq_and_close, _kernel, iters)
-    cv.imwrite("module_inv_sq_open.png", inv_sq_and_open)
+
+    inv_sq = inv_squarize_and_open(img, _kernel, iters)
+    sq = squarize_and_close(inv_sq, _kernel, iters)
+    inv_sq = inv_squarize_and_open(sq, _kernel, iters)
+
+    cv.imwrite("sq.png", sq)
+    cv.imwrite("inv_sq.png", inv_sq)
 
